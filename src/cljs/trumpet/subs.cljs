@@ -16,3 +16,8 @@
  :key-press
  (fn [db _]
    (reaction (:key-press @db))))
+
+(register-sub
+ :buzz
+ (fn [db _]
+   (reaction (:buzz @db))))

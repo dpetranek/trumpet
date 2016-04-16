@@ -9,13 +9,15 @@
 (def twelfth-root-of-two (.pow js/Math 2 (/ 1 12)))
 (def a-number 49)
 (def a-frequency 440)
-(def note-numbers [40 45 46 44 nil 42 43 41])
+(def note-numbers
+  {0 40, 32 55, 1 38, 33 53, 2 39, 3 37, 5 42, 6 43, 7 41, 40 59, 41 57,
+   10 47, 42 58, 11 45, 43 61, 12 46, 13 44, 46 60, 16 48, 50 64, 51 62,
+   20 52, 52 63, 21 50, 22 51, 23 49, 30 56, 31 54})
 
 (hum/connect vco vcf)
 (hum/connect vcf output)
 (hum/start-osc vco)
 (hum/connect-output output)
-
 
 
 (defn freq [target]
@@ -36,6 +38,7 @@
     nil))
 
 (def state {:instrument "trumpet"
+            :buzz 0
             :key-press #{}})
 
 (register-handler
@@ -44,8 +47,16 @@
  (fn [db _]
    (set! (.-onkeydown js/document) keydown)
    (set! (.-onkeyup js/document) keyup)
-   
    (merge db state)))
+
+(register-handler
+ :buzz
+ debug
+ (fn [db [_ buzz]]
+   (let [new-buzz? (not= (:buzz db) buzz)
+         db (assoc db :buzz buzz)]
+     (when new-buzz? (dispatch [:start-sound]))
+     db)))
 
 (register-handler
  :key-down
@@ -67,7 +78,7 @@
  :start-sound
  debug
  (fn [db _]
-   (let [keys (reduce + (:key-press db))
+   (let [keys (+ (reduce + (:key-press db)) (* 10 (:buzz db)))
          frequency (freq (get note-numbers keys))]
      (hum/note-on output vco frequency)
      (assoc db :playing true))))

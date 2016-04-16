@@ -33,20 +33,54 @@ a:hover {
   text-decoration: underline;
 }
 
-.container{display: flex;}
+
 .keys {
     display: flex;
     justify-content: space-around;
 }
+.buzzera{
+    display: flex;
+    flex-direction: column;
+}
+
+.across {
+    height: 10px;
+    width: 100px;
+    background: gold;
+}
+.upright {
+    height: 90px;
+    width: 10px;
+    background: gold;
+}
 
 .key {
-    height: 100px;
-    width: 100px;
-    background: black;
     display:flex;
     justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    text-align: center;
+}
+.down-key {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: reverse-column;
+}
+.buzzer {
+    height: 100px;
+    width: 200px;
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 .red { background: red; }
+.buzzing {background: red;
+         color: white;
+         font-weight: bold;}
+.silent {background: white;}
 .blue { background: blue; }
 .white { background: white;} 
 

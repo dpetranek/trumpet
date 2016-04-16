@@ -10,11 +10,11 @@
     (fn []
       [:div
        [:h2 @instrument]
-       [:p (str @key-press)]
+       [:p (str (reduce + @key-press))]
        [:div.keys
-        [:div.key (when (contains? @key-press 83) {:class "white"})]
-        [:div.key (when (contains? @key-press 68) {:class "white"})]
-        [:div.key (when (contains? @key-press 70) {:class "white"})]
+        [:div.key (when (contains? @key-press 1) {:class "white"})]
+        [:div.key (when (contains? @key-press 2) {:class "white"})]
+        [:div.key (when (contains? @key-press 4) {:class "white"})]
         [:div.key
          {:on-mouse-down #(dispatch [:start-sound])
           :on-mouse-up #(dispatch [:stop-sound])

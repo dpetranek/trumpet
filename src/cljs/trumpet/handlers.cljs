@@ -6,17 +6,20 @@
 (def vco (hum/create-osc ctx :square))
 (def vcf (hum/create-biquad-filter ctx))
 (def output (hum/create-gain ctx))
-#_(def twelfth-root-of-two (Math/pow 2 1/12))
+(def twelfth-root-of-two (.pow js/Math 2 (/ 1 12)))
 (def a-number 49)
 (def a-frequency 440)
+(def note-numbers [40 45 46 44 nil 42 43 41])
 
 (hum/connect vco vcf)
 (hum/connect vcf output)
 (hum/start-osc vco)
 (hum/connect-output output)
 
-#_(defn freq [target]
-  (* a-frequency (Math/pow twelfth-root-of-two (- target a-number))))
+
+
+(defn freq [target]
+  (* a-frequency (.pow js/Math twelfth-root-of-two (- target a-number))))
 
 (defn keydown [e]
   (when (contains? #{83 68 70} (.-keyCode e)) (.preventDefault e)) ;; s d f
@@ -25,7 +28,12 @@
 (defn keyup [e]
   (dispatch [:key-up e]))
 
-
+(defn keyval [e]
+  (case (.-keyCode e)
+    83 1
+    68 2
+    70 4
+    nil))
 
 (def state {:instrument "trumpet"
             :key-press #{}})
@@ -36,25 +44,33 @@
  (fn [db _]
    (set! (.-onkeydown js/document) keydown)
    (set! (.-onkeyup js/document) keyup)
+   
    (merge db state)))
 
 (register-handler
  :key-down
+ debug
  (fn [db [_ e]]
-   (update db :key-press #(conj % (.-keyCode e)))))
+   (let [db (if (contains? #{83 68 70} (.-keyCode e))
+              (update db :key-press #(conj % (keyval e)))
+              db)]
+     (when (:playing db) (dispatch [:start-sound]))
+     db) ))
 
 (register-handler
  :key-up
  debug
  (fn [db [_ e]]
-   (update db :key-press #(disj % (.-keyCode e)))))
+   (update db :key-press #(disj % (keyval e)))))
 
 (register-handler
  :start-sound
  debug
  (fn [db _]
-   (hum/note-on output vco 440)
-   (assoc db :playing true)))
+   (let [keys (reduce + (:key-press db))
+         frequency (freq (get note-numbers keys))]
+     (hum/note-on output vco frequency)
+     (assoc db :playing true))))
 
 (register-handler
  :stop-sound

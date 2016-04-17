@@ -10,9 +10,11 @@
 (def a-number 49)
 (def a-frequency 440)
 (def note-numbers
-  {0 40, 32 55, 1 38, 33 53, 2 39, 3 37, 5 42, 6 43, 7 41, 40 59, 41 57,
-   10 47, 42 58, 11 45, 43 61, 12 46, 13 44, 46 60, 16 48, 50 64, 51 62,
-   20 52, 52 63, 21 50, 22 51, 23 49, 30 56, 31 54})
+  {32 55, 1 38, 33 53, 2 39, 3 37, 40 56, 41 57, 10 40, 42 58, 11 45,
+   12 46, 13 44, 15 42, 16 43, 17 41, 50 59, 51 62, 20 47, 52 63, 21 50,
+   53 61, 22 51, 23 49, 56 60, 26 48, 60 64, 30 52, 31 54} )
+
+
 
 (hum/connect vco vcf)
 (hum/connect vcf output)
@@ -24,22 +26,24 @@
   (* a-frequency (.pow js/Math twelfth-root-of-two (- target a-number))))
 
 (defn keydown [e]
-  (when (contains? #{83 68 70} (.-keyCode e)) (.preventDefault e)) ;; s d f
   (dispatch [:key-down e]))
 
 (defn keyup [e]
   (dispatch [:key-up e]))
 
-(defn keyval [e]
+(defn state-val [e]
   (case (.-keyCode e)
     83 1
     68 2
     70 4
+    74 1
+    75 2
+    76 4
     nil))
 
-(def state {:instrument "trumpet"
-            :buzz 0
-            :key-press #{}})
+(def state {:valve-keys #{83 68 70 74 75 76} ;; s d f j k l
+            :buzz 1
+            :trumpet-state #{}})
 
 (register-handler
  :initialize
@@ -62,23 +66,23 @@
  :key-down
  debug
  (fn [db [_ e]]
-   (let [db (if (contains? #{83 68 70} (.-keyCode e))
-              (update db :key-press #(conj % (keyval e)))
+   (let [db (if (contains? (:valve-keys db) (.-keyCode e))
+              (update db :trumpet-state #(conj % (state-val e)))
               db)]
      (when (:playing db) (dispatch [:start-sound]))
-     db) ))
+     (assoc db :key-press (.-keyCode e))) ))
 
 (register-handler
  :key-up
  debug
  (fn [db [_ e]]
-   (update db :key-press #(disj % (keyval e)))))
+   (update db :trumpet-state #(disj % (state-val e)))))
 
 (register-handler
  :start-sound
  debug
  (fn [db _]
-   (let [keys (+ (reduce + (:key-press db)) (* 10 (:buzz db)))
+   (let [keys (+ (reduce + (:trumpet-state db)) (* 10 (:buzz db)))
          frequency (freq (get note-numbers keys))]
      (hum/note-on output vco frequency)
      (assoc db :playing true))))

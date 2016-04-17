@@ -18,6 +18,11 @@
    (reaction (:key-press @db))))
 
 (register-sub
+ :trumpet-state
+ (fn [db _]
+   (reaction (:trumpet-state @db))))
+
+(register-sub
  :buzz
  (fn [db _]
    (reaction (:buzz @db))))
